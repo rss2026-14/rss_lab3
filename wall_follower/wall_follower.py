@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import numpy as np
+from scipy import stats
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
@@ -9,13 +10,12 @@ from rcl_interfaces.msg import SetParametersResult
 
 from wall_follower.visualization_tools import VisualizationTools
 
-
 class WallFollower(Node):
 
     def __init__(self):
         super().__init__("wall_follower")
         # Declare parameters to make them available for use
-        # DO NOT MODIFY THIS! 
+        # DO NOT MODIFY THIS!
         self.declare_parameter("scan_topic", "/scan")
         self.declare_parameter("drive_topic", "/drive")
         self.declare_parameter("side", 1)
@@ -29,21 +29,115 @@ class WallFollower(Node):
         self.SIDE = self.get_parameter('side').get_parameter_value().integer_value
         self.VELOCITY = self.get_parameter('velocity').get_parameter_value().double_value
         self.DESIRED_DISTANCE = self.get_parameter('desired_distance').get_parameter_value().double_value
-		
+
         # This activates the parameters_callback function so that the tests are able
         # to change the parameters during testing.
-        # DO NOT MODIFY THIS! 
+        # DO NOT MODIFY THIS!
         self.add_on_set_parameters_callback(self.parameters_callback)
-  
-        # TODO: Initialize your publishers and subscribers here
 
-        # TODO: Write your callback functions here    
-    
+        # TODO: Initialize your publishers and subscribers here
+        self.steer_publisher = self.create_publisher(AckermannDriveStamped, self.DRIVE_TOPIC, 10)
+        self.scan_subscriber = self.create_subscription(LaserScan, self.SCAN_TOPIC, self.listener_callback, 10)
+        # self.front_pub = self.create_publisher(Marker, '/front', 1)
+        self.wall_pub = self.create_publisher(Marker, '/estimated_wall', 1)
+        # self.left_pub = self.create_publisher(Marker, '/left', 1)
+
+        # TODO: Write your callback functions here
+        self.kp = 3.0
+        self.kd = 1.0
+
+    def slice_scan(self, received_scan):
+        ranges = np.array(received_scan.ranges)
+        valid_distances_mask = (ranges > received_scan.range_min) & (ranges < received_scan.range_max)
+
+        all_angles = np.linspace(received_scan.angle_min, received_scan.angle_max, len(ranges))
+
+        # angles from +- 45 to 115
+        if self.SIDE == 1:
+            wall_distances_mask = valid_distances_mask & (all_angles > (np.pi/4.0)) & (all_angles < (115.0 * (np.pi / 180.0)))
+        else:
+            wall_distances_mask = valid_distances_mask & (all_angles < -(np.pi/4.0)) & (all_angles > -(115.0 * (np.pi / 180.0)))
+
+        wall_distances = ranges[wall_distances_mask]
+        needed_angles = all_angles[wall_distances_mask]
+
+        all_x = wall_distances * np.cos(needed_angles)
+        all_y = wall_distances * np.sin(needed_angles)
+
+        median_y = np.median(all_y)
+        tolerance = 0.4
+        good_range_mask = np.abs(all_y - median_y) < tolerance
+
+        good_x = all_x[good_range_mask]
+        good_y = all_y[good_range_mask]
+
+        if len(good_x) < 2:
+            return float(0.34 * self.SIDE)
+
+        x_spread = np.ptp(good_x)
+        if x_spread < 0.1:
+            # vertical line, bad for plotting
+            return 0.0
+
+        m, c = np.polyfit(good_x, good_y, 1)
+
+        x_offset = self.VELOCITY * 0.5 #want to look a bit further than just the exact distance of wall to wheel
+        y_at_x_offset = (m * x_offset) + c
+
+        front_mask = valid_distances_mask & (all_angles > -0.2) & (all_angles < 0.2)
+        front_ranges = ranges[front_mask]
+
+        front_detection = 0.0
+        if len(front_ranges) > 0:
+            front_dist = np.min(front_ranges)
+
+            # faster we go the further away we start feeling the corner
+            safe_dist = 1.0 * self.VELOCITY
+
+            if front_dist < safe_dist:
+                front_detection = (safe_dist - front_dist) * 2.0
+
+        error = self.DESIRED_DISTANCE - abs(y_at_x_offset) + front_detection
+
+        # derivative
+        if not hasattr(self, 'prev_error'):
+            self.prev_error = 0.0
+
+        derivative = error - self.prev_error
+        self.prev_error = error
+
+        steer_change = ((error * self.kp) + (derivative * self.kd)) * -self.SIDE
+
+        steer_change = np.clip(steer_change, -0.34, 0.34)
+
+        vis_x = np.array([0.0, 3.0])
+        vis_y = m * vis_x + c
+        VisualizationTools.plot_line(vis_x, vis_y, self.wall_pub, frame="/laser")
+
+        return steer_change
+
+    #     # VisualizationTools.plot_line(left_side_x, left_side_y, self.left_pub, frame="/laser")
+    #     # VisualizationTools.plot_line(right_side_x, right_side_y, self.right_pub, frame="/laser")
+    #     # VisualizationTools.plot_line(front_section_x, front_section_y, self.front_pub, frame="/laser")
+
+    def listener_callback(self, received):
+
+        new_steer_angle = self.slice_scan(received)
+
+        new_instruction = AckermannDriveStamped()
+
+        new_instruction.header.stamp = self.get_clock().now().to_msg()
+        new_instruction.header.frame_id = 'base_link'
+        new_instruction.drive.speed = self.VELOCITY
+        new_instruction.drive.steering_angle = new_steer_angle
+
+        self.steer_publisher.publish(new_instruction)
+
     def parameters_callback(self, params):
         """
         DO NOT MODIFY THIS CALLBACK FUNCTION!
-        
-        This is used by the test cases to modify the parameters during testing. 
+
+        This is used by the test cases to modify the parameters during testing.
         It's called whenever a parameter is set via 'ros2 param set'.
         """
         for param in params:
@@ -69,4 +163,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    
