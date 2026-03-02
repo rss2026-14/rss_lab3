@@ -1,0 +1,123 @@
+#!/usr/bin/env python3
+import numpy as np
+from scipy import stats
+import rclpy
+from rclpy.node import Node
+from sensor_msgs.msg import LaserScan
+from ackermann_msgs.msg import AckermannDriveStamped
+from visualization_msgs.msg import Marker
+from rcl_interfaces.msg import SetParametersResult
+
+from wall_follower.visualization_tools import VisualizationTools
+
+class SafetyStop(Node):
+
+    def __init__(self):
+        super().__init__("wall_follower")
+        # Declare parameters to make them available for use
+        # DO NOT MODIFY THIS!
+        self.declare_parameter("scan_topic", "/scan")
+        self.declare_parameter("drive_topic", "/drive")
+        self.declare_parameter("side", 1)
+        self.declare_parameter("velocity", 1.0)
+        self.declare_parameter("desired_distance", 1.0)
+
+        # Fetch constants from the ROS parameter server
+        # DO NOT MODIFY THIS! This is necessary for the tests to be able to test varying parameters!
+        self.SCAN_TOPIC = self.get_parameter('scan_topic').get_parameter_value().string_value
+        self.DRIVE_TOPIC = self.get_parameter('drive_topic').get_parameter_value().string_value
+        self.SIDE = self.get_parameter('side').get_parameter_value().integer_value
+        self.VELOCITY = self.get_parameter('velocity').get_parameter_value().double_value
+        self.DESIRED_DISTANCE = self.get_parameter('desired_distance').get_parameter_value().double_value
+
+        # This activates the parameters_callback function so that the tests are able
+        # to change the parameters during testing.
+        # DO NOT MODIFY THIS!
+        self.add_on_set_parameters_callback(self.parameters_callback)
+
+        # TODO: Initialize your publishers and subscribers here
+        self.steer_publisher = self.create_publisher(AckermannDriveStamped, self.DRIVE_TOPIC, 10)
+        self.scan_subscriber = self.create_subscription(LaserScan, self.SCAN_TOPIC, self.listener_callback, 10)
+
+        self.wall_pub = self.create_publisher(Marker, '/estimated_wall', 1)
+
+
+        # TODO: Write your callback functions here
+
+
+    def forcestop(self, received_scan):
+        ranges = np.array(received_scan.ranges)
+        valid_distances_mask = (ranges > received_scan.range_min) & (ranges < received_scan.range_max)
+
+        all_angles = np.linspace(received_scan.angle_min, received_scan.angle_max, len(ranges))
+
+        # angles from +- 45 to 115
+        if self.SIDE == 1:
+            wall_distances_mask = valid_distances_mask & (all_angles > (np.pi/4.0)) & (all_angles < (115.0 * (np.pi / 180.0)))
+        else:
+            wall_distances_mask = valid_distances_mask & (all_angles < -(np.pi/4.0)) & (all_angles > -(115.0 * (np.pi / 180.0)))
+
+        wall_distances = ranges[wall_distances_mask]
+        needed_angles = all_angles[wall_distances_mask]
+
+        if min(wall_distances) < 0.4 * self.VELOCITY:
+            return True
+
+        front_mask = valid_distances_mask & (all_angles > -0.2) & (all_angles < 0.2)
+        front_ranges = ranges[front_mask]
+
+        if len(front_ranges) > 0:
+            front_dist = np.min(front_ranges)
+
+            # faster we go the further away we start feeling the corner
+            safe_dist = 0.5 * self.VELOCITY
+
+            if front_dist < safe_dist:
+                return True
+
+        return False
+
+
+    def listener_callback(self, received):
+
+        stop = self.forcestop(received)
+
+        new_instruction = AckermannDriveStamped()
+
+        new_instruction.header.stamp = self.get_clock().now().to_msg()
+        new_instruction.header.frame_id = 'base_link'
+        if stop:
+            new_instruction.drive.speed = 0.0
+
+        self.steer_publisher.publish(new_instruction)
+
+    def parameters_callback(self, params):
+        """
+        DO NOT MODIFY THIS CALLBACK FUNCTION!
+
+        This is used by the test cases to modify the parameters during testing.
+        It's called whenever a parameter is set via 'ros2 param set'.
+        """
+        for param in params:
+            if param.name == 'side':
+                self.SIDE = param.value
+                self.get_logger().info(f"Updated side to {self.SIDE}")
+            elif param.name == 'velocity':
+                self.VELOCITY = param.value
+                self.get_logger().info(f"Updated velocity to {self.VELOCITY}")
+            elif param.name == 'desired_distance':
+                self.DESIRED_DISTANCE = param.value
+                self.get_logger().info(f"Updated desired_distance to {self.DESIRED_DISTANCE}")
+        return SetParametersResult(successful=True)
+
+
+def main():
+    rclpy.init()
+    wall_follower = WallFollower()
+    rclpy.spin(wall_follower)
+    wall_follower.destroy_node()
+    rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()

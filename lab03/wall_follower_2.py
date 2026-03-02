@@ -8,7 +8,7 @@ from ackermann_msgs.msg import AckermannDriveStamped
 from visualization_msgs.msg import Marker
 from rcl_interfaces.msg import SetParametersResult
 
-from wall_follower.visualization_tools import VisualizationTools
+from lab03.visualization_tools import VisualizationTools
 
 class WallFollower(Node):
 
