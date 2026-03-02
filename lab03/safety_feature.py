@@ -8,7 +8,7 @@ from ackermann_msgs.msg import AckermannDriveStamped
 from visualization_msgs.msg import Marker
 from rcl_interfaces.msg import SetParametersResult
 
-from wall_follower.visualization_tools import VisualizationTools
+from lab03.visualization_tools import VisualizationTools
 
 class SafetyStop(Node):
 
@@ -36,11 +36,11 @@ class SafetyStop(Node):
         self.add_on_set_parameters_callback(self.parameters_callback)
 
         # TODO: Initialize your publishers and subscribers here
-        self.steer_publisher = self.create_publisher(AckermannDriveStamped, self.DRIVE_TOPIC, 10)
+        self.stop_publisher = self.create_publisher(AckermannDriveStamped, '/vesc/low_level/input/safety', 10)
         self.scan_subscriber = self.create_subscription(LaserScan, self.SCAN_TOPIC, self.listener_callback, 10)
+        self.car_pose_subscriber = self.create_subscription(AckermannDriveStamped, '/vesc/low_level/ackermann_cmd', self.car_listen, 10)
 
         self.wall_pub = self.create_publisher(Marker, '/estimated_wall', 1)
-
 
         # TODO: Write your callback functions here
 
@@ -60,7 +60,7 @@ class SafetyStop(Node):
         wall_distances = ranges[wall_distances_mask]
         needed_angles = all_angles[wall_distances_mask]
 
-        if min(wall_distances) < 0.4 * self.VELOCITY:
+        if min(wall_distances) < 0.5 or min(wall_distances) < self.speed * 0.5:
             return True
 
         front_mask = valid_distances_mask & (all_angles > -0.2) & (all_angles < 0.2)
@@ -70,9 +70,9 @@ class SafetyStop(Node):
             front_dist = np.min(front_ranges)
 
             # faster we go the further away we start feeling the corner
-            safe_dist = 0.5 * self.VELOCITY
+            safe_dist = 0.5
 
-            if front_dist < safe_dist:
+            if front_dist < safe_dist or front_dist < self.speed * 0.5:
                 return True
 
         return False
@@ -88,8 +88,11 @@ class SafetyStop(Node):
         new_instruction.header.frame_id = 'base_link'
         if stop:
             new_instruction.drive.speed = 0.0
+            self.stop_publisher.publish(new_instruction)
 
-        self.steer_publisher.publish(new_instruction)
+    def car_listen(self, car_position):
+        self.speed = car_position.drive.speed
+
 
     def parameters_callback(self, params):
         """
@@ -113,7 +116,7 @@ class SafetyStop(Node):
 
 def main():
     rclpy.init()
-    wall_follower = WallFollower()
+    wall_follower = SafetyStop()
     rclpy.spin(wall_follower)
     wall_follower.destroy_node()
     rclpy.shutdown()

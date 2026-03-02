@@ -4,7 +4,7 @@ import numpy as np
 from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
 from visualization_msgs.msg import Marker
-from wall_follower.visualization_tools import VisualizationTools
+from lab03.visualization_tools import VisualizationTools
 
 
 class LinePublisher(Node):

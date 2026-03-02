@@ -1,6 +1,8 @@
 <launch>
   <!-- Launch the wall follower with parameters -->
-  <node pkg="lab03" name="lab03" exec="lab03" output="screen">
+  <node pkg="lab03" name="wall_follower" exec="wall_follower" output="screen">
+    <param from="$(find-pkg-share lab03)/params.yaml"/>
+  <node pkg="lab03" name="safety_stop" exec="safety_stop" output="screen">
     <param from="$(find-pkg-share lab03)/params.yaml"/>
   </node>
 </launch>
