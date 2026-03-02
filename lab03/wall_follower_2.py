@@ -36,7 +36,7 @@ class WallFollower(Node):
         self.add_on_set_parameters_callback(self.parameters_callback)
 
         # TODO: Initialize your publishers and subscribers here
-        self.steer_publisher = self.create_publisher(AckermannDriveStamped, self.DRIVE_TOPIC, 10)
+        self.steer_publisher = self.create_publisher(AckermannDriveStamped, '/vesc/low_level/input/navigation', 10)
         self.scan_subscriber = self.create_subscription(LaserScan, self.SCAN_TOPIC, self.listener_callback, 10)
         # self.front_pub = self.create_publisher(Marker, '/front', 1)
         self.wall_pub = self.create_publisher(Marker, '/estimated_wall', 1)
