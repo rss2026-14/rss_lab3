@@ -43,6 +43,7 @@ class SafetyStop(Node):
         self.wall_pub = self.create_publisher(Marker, '/estimated_wall', 1)
 
         # TODO: Write your callback functions here
+        self.speed = self.VELOCITY
 
 
     def forcestop(self, received_scan):
@@ -77,7 +78,6 @@ class SafetyStop(Node):
 
         return False
 
-
     def listener_callback(self, received):
 
         stop = self.forcestop(received)
@@ -91,7 +91,9 @@ class SafetyStop(Node):
             self.stop_publisher.publish(new_instruction)
 
     def car_listen(self, car_position):
-        self.speed = car_position.drive.speed
+        if car_position:
+            self.speed = car_position.drive.speed
+
 
 
     def parameters_callback(self, params):
