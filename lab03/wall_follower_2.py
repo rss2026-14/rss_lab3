@@ -36,7 +36,7 @@ class WallFollower(Node):
         self.add_on_set_parameters_callback(self.parameters_callback)
 
         # TODO: Initialize your publishers and subscribers here
-        self.steer_publisher = self.create_publisher(AckermannDriveStamped, '/vesc/input/navigation', 10)
+        self.steer_publisher = self.create_publisher(AckermannDriveStamped, '/vesc/high_level/input/nav_0', 10)
         self.scan_subscriber = self.create_subscription(LaserScan, self.SCAN_TOPIC, self.listener_callback, 10)
         # self.front_pub = self.create_publisher(Marker, '/front', 1)
         self.wall_pub = self.create_publisher(Marker, '/estimated_wall', 1)
@@ -112,7 +112,7 @@ class WallFollower(Node):
 
         vis_x = np.array([0.0, 3.0])
         vis_y = m * vis_x + c
-        VisualizationTools.plot_line(vis_x, vis_y, self.wall_pub, frame="/laser")
+        # VisualizationTools.plot_line(vis_x, vis_y, self.wall_pub, frame="/laser")
 
         return steer_change
 

@@ -36,7 +36,7 @@ class SafetyStop(Node):
         self.add_on_set_parameters_callback(self.parameters_callback)
 
         # TODO: Initialize your publishers and subscribers here
-        self.stop_publisher = self.create_publisher(AckermannDriveStamped, '/vesc/low_level/input/safety', 10)
+        self.stop_publisher = self.create_publisher(AckermannDriveStamped, '/vesc/input/safety', 10)
         self.scan_subscriber = self.create_subscription(LaserScan, self.SCAN_TOPIC, self.listener_callback, 10)
         self.car_pose_subscriber = self.create_subscription(AckermannDriveStamped, '/vesc/low_level/ackermann_cmd', self.car_listen, 10)
 
