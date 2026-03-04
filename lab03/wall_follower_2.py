@@ -17,7 +17,7 @@ class WallFollower(Node):
         # Declare parameters to make them available for use
         # DO NOT MODIFY THIS!
         self.declare_parameter("scan_topic", "/scan")
-        self.declare_parameter("drive_topic", "/drive")
+        self.declare_parameter("drive_topic", "/vesc/high_level/input/nav_0")
         self.declare_parameter("side", 1)
         self.declare_parameter("velocity", 1.0)
         self.declare_parameter("desired_distance", 1.0)
@@ -36,11 +36,8 @@ class WallFollower(Node):
         self.add_on_set_parameters_callback(self.parameters_callback)
 
         # TODO: Initialize your publishers and subscribers here
-        self.steer_publisher = self.create_publisher(AckermannDriveStamped, '/vesc/high_level/input/nav_0', 10)
+        self.steer_publisher = self.create_publisher(AckermannDriveStamped, self.DRIVE_TOPIC, 10)
         self.scan_subscriber = self.create_subscription(LaserScan, self.SCAN_TOPIC, self.listener_callback, 10)
-        # self.front_pub = self.create_publisher(Marker, '/front', 1)
-        self.wall_pub = self.create_publisher(Marker, '/estimated_wall', 1)
-        # self.left_pub = self.create_publisher(Marker, '/left', 1)
 
         # TODO: Write your callback functions here
         self.kp = 3.0
@@ -106,19 +103,11 @@ class WallFollower(Node):
         derivative = error - self.prev_error
         self.prev_error = error
 
-        steer_change = ((error * self.kp) + (derivative * self.kd)) * -self.SIDE
+        steer_angle_change = ((error * self.kp) + (derivative * self.kd)) * -self.SIDE
 
-        steer_change = np.clip(steer_change, -0.34, 0.34)
+        steer_angle_change = np.clip(steer_angle_change, -0.34, 0.34)
 
-        vis_x = np.array([0.0, 3.0])
-        vis_y = m * vis_x + c
-        # VisualizationTools.plot_line(vis_x, vis_y, self.wall_pub, frame="/laser")
-
-        return steer_change
-
-    #     # VisualizationTools.plot_line(left_side_x, left_side_y, self.left_pub, frame="/laser")
-    #     # VisualizationTools.plot_line(right_side_x, right_side_y, self.right_pub, frame="/laser")
-    #     # VisualizationTools.plot_line(front_section_x, front_section_y, self.front_pub, frame="/laser")
+        return steer_angle_change
 
     def listener_callback(self, received):
 

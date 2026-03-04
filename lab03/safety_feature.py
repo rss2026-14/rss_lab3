@@ -13,11 +13,12 @@ from lab03.visualization_tools import VisualizationTools
 class SafetyStop(Node):
 
     def __init__(self):
-        super().__init__("wall_follower")
+        super().__init__("safety_stop")
         # Declare parameters to make them available for use
         # DO NOT MODIFY THIS!
         self.declare_parameter("scan_topic", "/scan")
-        self.declare_parameter("drive_topic", "/drive")
+        self.declare_parameter("safety_topic", '/vesc/input/safety')
+        self.declare_parameter("position_topic", '/vesc/low_level/ackermann_cmd')
         self.declare_parameter("side", 1)
         self.declare_parameter("velocity", 1.0)
         self.declare_parameter("desired_distance", 1.0)
@@ -25,7 +26,8 @@ class SafetyStop(Node):
         # Fetch constants from the ROS parameter server
         # DO NOT MODIFY THIS! This is necessary for the tests to be able to test varying parameters!
         self.SCAN_TOPIC = self.get_parameter('scan_topic').get_parameter_value().string_value
-        self.DRIVE_TOPIC = self.get_parameter('drive_topic').get_parameter_value().string_value
+        self.SAFETY_TOPIC = self.get_parameter('safety_topic').get_parameter_value().string_value
+        self.POSITION_TOPIC = self.get_parameter('position_topic').get_parameter_value().string_value
         self.SIDE = self.get_parameter('side').get_parameter_value().integer_value
         self.VELOCITY = self.get_parameter('velocity').get_parameter_value().double_value
         self.DESIRED_DISTANCE = self.get_parameter('desired_distance').get_parameter_value().double_value
@@ -36,15 +38,12 @@ class SafetyStop(Node):
         self.add_on_set_parameters_callback(self.parameters_callback)
 
         # TODO: Initialize your publishers and subscribers here
-        self.stop_publisher = self.create_publisher(AckermannDriveStamped, '/vesc/input/safety', 10)
+        self.stop_publisher = self.create_publisher(AckermannDriveStamped, self.SAFETY_TOPIC, 10)
         self.scan_subscriber = self.create_subscription(LaserScan, self.SCAN_TOPIC, self.listener_callback, 10)
-        self.car_pose_subscriber = self.create_subscription(AckermannDriveStamped, '/vesc/low_level/ackermann_cmd', self.car_listen, 10)
-
-        self.wall_pub = self.create_publisher(Marker, '/estimated_wall', 1)
+        self.car_pose_subscriber = self.create_subscription(AckermannDriveStamped, self.POSITION_TOPIC, self.car_listen, 10)
 
         # TODO: Write your callback functions here
         self.speed = self.VELOCITY
-
 
     def forcestop(self, received_scan):
         ranges = np.array(received_scan.ranges)
@@ -59,7 +58,6 @@ class SafetyStop(Node):
             wall_distances_mask = valid_distances_mask & (all_angles < -(np.pi/4.0)) & (all_angles > -(115.0 * (np.pi / 180.0)))
 
         wall_distances = ranges[wall_distances_mask]
-        needed_angles = all_angles[wall_distances_mask]
 
         if min(wall_distances) < 0.5 or min(wall_distances) < self.speed * 0.5:
             return True
