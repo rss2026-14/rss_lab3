@@ -1,14 +1,10 @@
 #!/usr/bin/env python3
 import numpy as np
-from scipy import stats
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
 from ackermann_msgs.msg import AckermannDriveStamped
-from visualization_msgs.msg import Marker
 from rcl_interfaces.msg import SetParametersResult
-
-from lab03.visualization_tools import VisualizationTools
 
 class WallFollower(Node):
 
@@ -32,10 +28,8 @@ class WallFollower(Node):
 
         # This activates the parameters_callback function so that the tests are able
         # to change the parameters during testing.
-        # DO NOT MODIFY THIS!
         self.add_on_set_parameters_callback(self.parameters_callback)
 
-        # TODO: Initialize your publishers and subscribers here
         self.steer_publisher = self.create_publisher(AckermannDriveStamped, self.DRIVE_TOPIC, 10)
         self.scan_subscriber = self.create_subscription(LaserScan, self.SCAN_TOPIC, self.listener_callback, 10)
 

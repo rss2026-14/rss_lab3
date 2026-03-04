@@ -92,8 +92,6 @@ class SafetyStop(Node):
         if car_position:
             self.speed = car_position.drive.speed
 
-
-
     def parameters_callback(self, params):
         """
         DO NOT MODIFY THIS CALLBACK FUNCTION!
