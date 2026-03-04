@@ -53,9 +53,9 @@ class WallFollower(Node):
         # angles from +- 45 to 115
         #get valid masking for ranges and angles
         if self.SIDE == 1:
-            wall_distances_mask = valid_distances_mask & (all_angles > (np.pi/4.0)) & (all_angles < (115.0 * (np.pi / 180.0)))
+            wall_distances_mask = valid_distances_mask & (all_angles > (np.pi/3.0)) & (all_angles < (115.0 * (np.pi / 180.0)))
         else:
-            wall_distances_mask = valid_distances_mask & (all_angles < -(np.pi/4.0)) & (all_angles > -(115.0 * (np.pi / 180.0)))
+            wall_distances_mask = valid_distances_mask & (all_angles < -(np.pi/3.0)) & (all_angles > -(115.0 * (np.pi / 180.0)))
 
         #get sliced ranges and angles by applying mask to ranges and angles
         wall_distances = ranges[wall_distances_mask]
