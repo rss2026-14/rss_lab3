@@ -3,12 +3,15 @@ windows:
   - window_name: testing
     layout: tiled
     shell_command_before:
-      - cd ~/src/rss_lab3
+      - cd ~/racecar_ws/src/rss_lab3
     panes:
+      - shell_command:
+        - teleop
       - shell_command:
         - ros2 run lab03 wall_follower_2
       - shell_command:
         - ros2 run lab03 safety_feature
       - shell_command:
+        - mkdir bag_files
         - cd bag_files
-        - ros2 bag record /estimated_wall /vesc/input/navigation /vesc/low_level/input/safety
+        - ros2 bag record /scan /vesc/low_level/ackermann_cmd /vesc/high_level/input/nav_0 /vesc/input/safety
