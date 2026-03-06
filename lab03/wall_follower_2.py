@@ -87,7 +87,7 @@ class WallFollower(Node):
         #get a linear regression fit of the sliced data
         m, c = np.polyfit(good_x, good_y, 1)
 
-        x_offset = self.VELOCITY * 0.8 #want to look a bit further than just the exact distance of wall to wheel -> mainly for corners to estimate where the car would be
+        x_offset = self.VELOCITY * 0.5 #want to look a bit further than just the exact distance of wall to wheel -> mainly for corners to estimate where the car would be
         y_at_x_offset = (m * x_offset) + c #wall distances
 
         #apply third mask as an emergency front mask, helped to dampen oscillations
@@ -99,7 +99,7 @@ class WallFollower(Node):
             front_dist = np.min(front_ranges) #get the minimum front distance
 
             # faster we go the further away we start feeling the corner
-            safe_dist = (self.DESIRED_DISTANCE / 4) * self.VELOCITY
+            safe_dist = self.DESIRED_DISTANCE * self.VELOCITY
 
             if front_dist < safe_dist: #need to account for the closer front wall
                 front_detection_error = (safe_dist - front_dist) * 2.0 #we are too close to the front wall, increase the error manually -> increase turning factor
