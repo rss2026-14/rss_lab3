@@ -67,7 +67,7 @@ class WallFollower(Node):
 
         #get median of y data to make the line based on earlier points for estimating the line (get rid of extraneous points/outliers)
         median_y = np.median(all_y)
-        tolerance = 0.4 #arbitrary tolerance value
+        tolerance = 0.7 #arbitrary tolerance value
         good_range_mask = np.abs(all_y - median_y) < tolerance #new mask to account for earlier points to make a more accurate lines
         #prevents car location confusion, prevents guessing
 
