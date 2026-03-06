@@ -36,12 +36,12 @@ class WallFollower(Node):
 
         # TODO: Write your callback functions here
         #setting PD constants
-        self.kp = 3.0
-        self.kd = 4.5
+        self.kp = 4.0
+        self.kd = 4.0
 
     def slice_scan(self, received_scan):
         """
-        Function to read LaserScan range and angle data. 
+        Function to read LaserScan range and angle data.
         Masks are applied to slice all data to get the desired data for wall following.
         Inputs are the scan data and output is the desired steer angle change.
         """
@@ -94,7 +94,7 @@ class WallFollower(Node):
         front_mask = valid_distances_mask & (all_angles > -0.2) & (all_angles < 0.2)
         front_ranges = ranges[front_mask] #apply new mask, approaching a wall need to turn
 
-        front_detection_error = 0.0 
+        front_detection_error = 0.0
         if len(front_ranges) > 0:
             front_dist = np.min(front_ranges) #get the minimum front distance
 
