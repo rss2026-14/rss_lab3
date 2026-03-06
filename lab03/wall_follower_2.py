@@ -50,7 +50,7 @@ class WallFollower(Node):
 
         all_angles = np.linspace(received_scan.angle_min, received_scan.angle_max, len(ranges)) #get all laserscan angles
 
-        # angles from +-  to 115
+        # angles from +- 45 to 115
         #get valid masking for ranges and angles
         if self.SIDE == 1:
             wall_distances_mask = valid_distances_mask & (all_angles > (np.pi/3.0)) & (all_angles < (115.0 * (np.pi / 180.0)))
@@ -87,7 +87,7 @@ class WallFollower(Node):
         #get a linear regression fit of the sliced data
         m, c = np.polyfit(good_x, good_y, 1)
 
-        x_offset = self.VELOCITY * 0.5 #want to look a bit further than just the exact distance of wall to wheel -> mainly for corners to estimate where the car would be
+        x_offset = self.VELOCITY * 0.8 #want to look a bit further than just the exact distance of wall to wheel -> mainly for corners to estimate where the car would be
         y_at_x_offset = (m * x_offset) + c #wall distances
 
         #apply third mask as an emergency front mask, helped to dampen oscillations
