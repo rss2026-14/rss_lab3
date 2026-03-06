@@ -50,7 +50,7 @@ class WallFollower(Node):
 
         all_angles = np.linspace(received_scan.angle_min, received_scan.angle_max, len(ranges)) #get all laserscan angles
 
-        # angles from +- 45 to 115
+        # angles from +-  to 115
         #get valid masking for ranges and angles
         if self.SIDE == 1:
             wall_distances_mask = valid_distances_mask & (all_angles > (np.pi/3.0)) & (all_angles < (115.0 * (np.pi / 180.0)))
@@ -99,7 +99,7 @@ class WallFollower(Node):
             front_dist = np.min(front_ranges) #get the minimum front distance
 
             # faster we go the further away we start feeling the corner
-            safe_dist = (self.DESIRED_DISTANCE / 2) * self.VELOCITY
+            safe_dist = (self.DESIRED_DISTANCE / 4) * self.VELOCITY
 
             if front_dist < safe_dist: #need to account for the closer front wall
                 front_detection_error = (safe_dist - front_dist) * 2.0 #we are too close to the front wall, increase the error manually -> increase turning factor
