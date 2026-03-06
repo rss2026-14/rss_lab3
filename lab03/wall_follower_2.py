@@ -37,7 +37,7 @@ class WallFollower(Node):
         # TODO: Write your callback functions here
         #setting PD constants
         self.kp = 3.0
-        self.kd = 1.0
+        self.kd = 4.5
 
     def slice_scan(self, received_scan):
         """
