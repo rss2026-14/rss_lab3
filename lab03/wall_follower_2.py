@@ -99,7 +99,7 @@ class WallFollower(Node):
             front_dist = np.min(front_ranges) #get the minimum front distance
 
             # faster we go the further away we start feeling the corner
-            safe_dist = self.DESIRED_DISTANCE * self.VELOCITY
+            safe_dist = (self.DESIRED_DISTANCE / 2) * self.VELOCITY
 
             if front_dist < safe_dist: #need to account for the closer front wall
                 front_detection_error = (safe_dist - front_dist) * 2.0 #we are too close to the front wall, increase the error manually -> increase turning factor
