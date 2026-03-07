@@ -1,14 +1,10 @@
 #!/usr/bin/env python3
 import numpy as np
-from scipy import stats
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
 from ackermann_msgs.msg import AckermannDriveStamped
-from visualization_msgs.msg import Marker
 from rcl_interfaces.msg import SetParametersResult
-
-from lab03.visualization_tools import VisualizationTools
 
 class SafetyStop(Node):
 
@@ -51,27 +47,27 @@ class SafetyStop(Node):
 
         all_angles = np.linspace(received_scan.angle_min, received_scan.angle_max, len(ranges))
 
-        # # angles from +- 45 to 115
-        # if self.SIDE == 1:
-        #     wall_distances_mask = valid_distances_mask & (all_angles > (np.pi/6.0)) & (all_angles < (115.0 * (np.pi / 180.0)))
-        # else:
-        #     wall_distances_mask = valid_distances_mask & (all_angles < -(np.pi/6.0)) & (all_angles > -(115.0 * (np.pi / 180.0)))
+        # angles from +- 45 to 115
+        if self.SIDE == 1:
+            wall_distances_mask = valid_distances_mask & (all_angles > (np.pi/4.0)) & (all_angles < (115.0 * (np.pi / 180.0)))
+        else:
+            wall_distances_mask = valid_distances_mask & (all_angles < -(np.pi/4.0)) & (all_angles > -(115.0 * (np.pi / 180.0)))
 
-        # wall_distances = ranges[wall_distances_mask]
+        wall_distances = ranges[wall_distances_mask]
 
-        # if min(wall_distances) < 0.5 or min(wall_distances) < self.speed * 0.5:
-        #     return True
+        if min(wall_distances) < 0.25:
+            return True
 
-        front_mask = valid_distances_mask & (all_angles > -0.8) & (all_angles < 0.8)
+        front_mask = valid_distances_mask & (all_angles > -0.2) & (all_angles < 0.2)
         front_ranges = ranges[front_mask]
 
         if len(front_ranges) > 0:
             front_dist = np.min(front_ranges)
 
             # faster we go the further away we start feeling the corner
-            safe_dist = 0.5
+            safe_dist = 0.25
 
-            if front_dist < safe_dist or front_dist < self.speed * 0.5:
+            if front_dist < safe_dist or front_dist < self.speed * 0.25:
                 return True
 
         return False
