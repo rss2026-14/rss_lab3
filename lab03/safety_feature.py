@@ -65,9 +65,9 @@ class SafetyStop(Node):
             front_dist = np.min(front_ranges)
 
             # faster we go the further away we start feeling the corner
-            safe_dist = 0.3
+            safe_dist = 0.4
 
-            if front_dist < safe_dist or front_dist < self.speed * 0.35:
+            if front_dist < safe_dist or front_dist < self.speed * 0.4:
                 return True
 
         return False
