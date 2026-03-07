@@ -58,16 +58,16 @@ class SafetyStop(Node):
         if min(wall_distances) < 0.25:
             return True
 
-        front_mask = valid_distances_mask & (all_angles > -0.65) & (all_angles < 0.65)
+        front_mask = valid_distances_mask & (all_angles > -0.55) & (all_angles < 0.55)
         front_ranges = ranges[front_mask]
 
         if len(front_ranges) > 0:
             front_dist = np.min(front_ranges)
 
             # faster we go the further away we start feeling the corner
-            safe_dist = 0.45
+            safe_dist = 0.4
 
-            if front_dist < safe_dist or front_dist < self.speed * 0.5:
+            if front_dist < safe_dist or front_dist < self.speed * 0.45:
                 return True
 
         return False
