@@ -102,7 +102,7 @@ class WallFollower(Node):
             safe_dist = self.DESIRED_DISTANCE * self.VELOCITY
 
             if front_dist < safe_dist: #need to account for the closer front wall
-                front_detection_error = (safe_dist - front_dist) * 2.0 #we are too close to the front wall, increase the error manually -> increase turning factor
+                front_detection_error = (safe_dist - front_dist) * 1.5 #we are too close to the front wall, increase the error manually -> increase turning factor
 
         error = self.DESIRED_DISTANCE - abs(y_at_x_offset) + front_detection_error #calculate the wall distance error
 
