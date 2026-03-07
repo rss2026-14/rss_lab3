@@ -58,7 +58,7 @@ class SafetyStop(Node):
         if min(wall_distances) < 0.25:
             return True
 
-        front_mask = valid_distances_mask & (all_angles > -0.2) & (all_angles < 0.2)
+        front_mask = valid_distances_mask & (all_angles > -0.65) & (all_angles < 0.65)
         front_ranges = ranges[front_mask]
 
         if len(front_ranges) > 0:
