@@ -14,7 +14,7 @@ class WallFollower(Node):
         # DO NOT MODIFY THIS!
         self.declare_parameter("scan_topic", "/scan")
         self.declare_parameter("drive_topic", "/vesc/high_level/input/nav_0")
-        self.declare_parameter("side", -1)
+        self.declare_parameter("side", 1)
         self.declare_parameter("velocity", 1.0)
         self.declare_parameter("desired_distance", 1.0)
 
@@ -91,7 +91,7 @@ class WallFollower(Node):
         y_at_x_offset = (m * x_offset) + c #wall distances
 
         #apply third mask as an emergency front mask, helped to dampen oscillations
-        front_mask = valid_distances_mask & (all_angles > -0.2) & (all_angles < 0.2)
+        front_mask = valid_distances_mask & (all_angles > -0.15) & (all_angles < 0.15)
         front_ranges = ranges[front_mask] #apply new mask, approaching a wall need to turn
 
         front_detection_error = 0.0
