@@ -29,6 +29,7 @@ setup(
 	        'viz_example = lab03.viz_example:main',
         	'test_wall_follower = lab03.test_wall_follower:main',
             'safety_stop = lab03.safety_feature:main',
+            'bag_grapher = lab03.bag_grapher:main',
         ],
     },
 )
