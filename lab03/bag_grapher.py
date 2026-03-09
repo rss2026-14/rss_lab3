@@ -2,7 +2,7 @@ import numpy as np
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
-from ackermann_msgs.msg import AckermannDriveStamped
+#from ackermann_msgs.msg import AckermannDriveStamped
 from rcl_interfaces.msg import SetParametersResult
 from std_msgs.msg import Float64
 
@@ -28,6 +28,7 @@ class Grapher(Node):
         #self.FOLLOWER = self.get_parameter('follower_topic').get_parameter_value().string_value
         #self.SAFETY = self.get_parameter('safety_topic').get_parameter_value().string_value
         self.DIST=self.get_parameter('distance_topic').get_parameter_value().string_value
+        self.DIST=self.get_parameter('distance_topic').get_parameter_value().string_value
         self.SIDE = self.get_parameter('side').get_parameter_value().integer_value
         self.VELOCITY = self.get_parameter('velocity').get_parameter_value().double_value
         self.DESIRED_DISTANCE = self.get_parameter('desired_distance').get_parameter_value().double_value
@@ -44,6 +45,8 @@ class Grapher(Node):
         #setting PD constants
         self.kp = 3.0
         self.kd = 2.0
+        self.time=[]
+        self.errors=[]
 
     def slice_scan(self, received_scan):
         """
@@ -81,15 +84,6 @@ class Grapher(Node):
         good_x = all_x[good_range_mask]
         good_y = all_y[good_range_mask]
 
-        #for external corners: if you only collected two - points then do a full turn into the corner
-        if len(good_x) < 2:
-            return float(0.34 * self.SIDE)
-
-        x_spread = np.ptp(good_x) #how far the x values are from each other, make the car go straight because the wall is a straight line
-        if x_spread < 0.1:
-            # vertical line, bad for plotting
-            return 0.0
-
         #get a linear regression fit of the sliced data
         m, c = np.polyfit(good_x, good_y, 1)
 
@@ -110,7 +104,7 @@ class Grapher(Node):
             if front_dist < safe_dist: #need to account for the closer front wall
                 front_detection_error = (safe_dist - front_dist) * 2.0 #we are too close to the front wall, increase the error manually -> increase turning factor
 
-        error = self.DESIRED_DISTANCE - abs(y_at_x_offset) + front_detection_error #calculate the wall distance error
+        error = float(self.DESIRED_DISTANCE - abs(y_at_x_offset) + front_detection_error) #calculate the wall distance error
 
         return error
 
