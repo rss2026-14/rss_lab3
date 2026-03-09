@@ -4,6 +4,7 @@ from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
 from ackermann_msgs.msg import AckermannDriveStamped
 from rcl_interfaces.msg import SetParametersResult
+from std_msgs.msg import Float64
 
 class Grapher(Node):
 
@@ -26,7 +27,7 @@ class Grapher(Node):
         #self.DRIVE_TOPIC = self.get_parameter('drive_topic').get_parameter_value().string_value
         #self.FOLLOWER = self.get_parameter('follower_topic').get_parameter_value().string_value
         #self.SAFETY = self.get_parameter('safety_topic').get_parameter_value().string_value
-        self.DIST=self.get_parameter('distance_topic').get_parameter_value().double_value
+        self.DIST=self.get_parameter('distance_topic').get_parameter_value().string_value
         self.SIDE = self.get_parameter('side').get_parameter_value().integer_value
         self.VELOCITY = self.get_parameter('velocity').get_parameter_value().double_value
         self.DESIRED_DISTANCE = self.get_parameter('desired_distance').get_parameter_value().double_value
@@ -36,7 +37,7 @@ class Grapher(Node):
         self.add_on_set_parameters_callback(self.parameters_callback)
 
         #publisher and subscriber
-        self.dist_publisher = self.create_publisher(float, self.DIST, 10)
+        self.dist_publisher = self.create_publisher(Float64, self.DIST, 10)
         self.scan_sub = self.create_subscription(LaserScan, self.SCAN_TOPIC, self.scan_callback, 10)
 
         # TODO: Write your callback functions here
@@ -119,7 +120,9 @@ class Grapher(Node):
         Inputs are received scan and output is a float with distance from wall.
         """
         error=self.slice_scan(received)
-        self.dist_publisher.publish(error)
+        msg = Float64()
+        msg.data = error
+        self.dist_publisher.publish(msg)
 
     def parameters_callback(self, params):
         """
