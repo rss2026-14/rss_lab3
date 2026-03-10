@@ -114,9 +114,7 @@ class Grapher(Node):
         Inputs are received scan and output is a float with distance from wall.
         """
         error=self.slice_scan(received)
-        msg = Float64()
-        msg.data = error
-        self.dist_publisher.publish(msg)
+        self.dist_publisher.publish(error)
 
     def parameters_callback(self, params):
         """

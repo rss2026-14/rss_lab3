@@ -1,0 +1,2 @@
+time,header_stamp_secs,header_stamp_nsecs,header_frame_id,drive_steering_angle,drive_steering_angle_velocity,drive_speed,drive_acceleration,drive_jerk
+2026/03/08 21:41:26.376494472,1773006086,375334376,base_link,0.0,0.0,0.0,0.0,0.0
