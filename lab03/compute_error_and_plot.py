@@ -1,11 +1,13 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt 
-# straigh v1 vs v2:
+
+# straight v1
 trial11 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\straight_1_speed_1\straight_1_speed_1_0.db\scan.csv"
 trial12 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\straight_2_speed_1\straight_2_speed_1_0.db\scan.csv"
 trial13 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\straight_23_speed_1\straight_23_speed_1_0.db\scan.csv"
 
+#straight v2
 trial21 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\ostraight_1_speed_2\ostraight_1_speed_2_0.db\scan.csv"
 trial22 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\straight_2_speed_2\straight_2_speed_2_0.db\scan.csv"
 trial23 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\straighht_3_speed_2\straighht_3_speed_2_0.db\scan.csv"
@@ -21,15 +23,15 @@ trial23 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\st
 # trial22 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\sinside_corner_12_speed_2\sinside_corner_12_speed_2_0.db\scan.csv"
 # trial23 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\sinside_corner_23_speed_1\sinside_corner_23_speed_1_0.db\scan.csv"
 
-# outside corner turn speed1
-trial11 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\sout_1_speed_1\sout_1_speed_1_0.db\scan.csv"
-trial12 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\sout_2_speed_1\sout_2_speed_1_0.db\scan.csv"
-trial13 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\sout_23_speed_1\sout_23_speed_1_0.db\scan.csv"
+# #outside corner turn speed1
+# trial11 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\sout_1_speed_1\sout_1_speed_1_0.db\scan.csv"
+# trial12 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\sout_2_speed_1\sout_2_speed_1_0.db\scan.csv"
+# trial13 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\sout_23_speed_1\sout_23_speed_1_0.db\scan.csv"
 
-#outside corner turn speed2
-trial21 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\sout_1_speed_2\sout_1_speed_2_0.db\scan.csv"
-trial22 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\out_2_speed_2\out_2_speed_2_0.db\scan.csv"
-trial23 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\outt_3_speed_2\outt_3_speed_2_0.db\scan.csv"
+# #outside corner turn speed2
+# trial21 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\sout_1_speed_2\sout_1_speed_2_0.db\scan.csv"
+# trial22 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\out_2_speed_2\out_2_speed_2_0.db\scan.csv"
+# trial23 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\outt_3_speed_2\outt_3_speed_2_0.db\scan.csv"
 
 
 # # straight 45 degrees inward speed1
@@ -78,6 +80,7 @@ TRIAL_STARTS     = {     # per-trial start times
 }
 # ─────────────────────────────────────────────────────────────────────────────
 
+# -----Computing the error function written by Philip -----
 def compute_error(row, side, velocity, desired_distance):
     range_cols = [f'ranges_{i}' for i in range(1081)]
     ranges = row[range_cols].values.astype(float)
@@ -153,11 +156,11 @@ def load_trial_errors(trials, starts, velocity):
             mask = np.ones(len(time_secs), dtype=bool)
         time_trim = time_secs[mask] - time_secs[mask][0]
         err_trim  = (errors[mask]/DESIRED_DISTANCE) *100
-        # err_trim = errors[mask]
-        # # Clip to 9 seconds
-        clip_mask = time_trim <= 6.25
-        time_trim = time_trim[clip_mask]
-        err_trim  = err_trim[clip_mask]
+        # err_trim = errors[mask]   #uncomment for raw error, not percentage
+        # # Trim data to stop at a certain time
+        # clip_mask = time_trim <= 6.25 
+        # time_trim = time_trim[clip_mask]
+        # err_trim  = err_trim[clip_mask]
 
         all_errors.append((time_trim, err_trim))
 
@@ -181,11 +184,9 @@ def average_errors(trial_errors):
 
 
 # ── LOAD & AVERAGE ────────────────────────────────────────────────────────────
-print("Processing velocity 1 trials...")
 v1_trial_errors          = load_trial_errors(VELOCITY_1_TRIALS, TRIAL_STARTS['v1'], velocity=1.0)
 v1_time, v1_avg, v1_std  = average_errors(v1_trial_errors)
 
-print("Processing velocity 2 trials...")
 v2_trial_errors          = load_trial_errors(VELOCITY_2_TRIALS, TRIAL_STARTS['v2'], velocity=2.0)
 v2_time, v2_avg, v2_std  = average_errors(v2_trial_errors)
 
@@ -195,27 +196,30 @@ fig, ax = plt.subplots(figsize=(14, 6))
 # Velocity 1 — average line + shaded std deviation band
 ax.plot(v1_time, v1_avg, color='olivedrab', linewidth=2.0, label='Velocity 1 - 1m/s (avg across three trials)')
 ax.axhline(5, color='red', linestyle='--', linewidth=1.2, label='+5% margin')
-# ax.fill_between(v1_time, v1_avg - v1_std, v1_avg + v1_std, color='steelblue', alpha=0.2, label='V1 ± std dev')
+# ax.fill_between(v1_time, v1_avg - v1_std, v1_avg + v1_std, color='steelblue', alpha=0.2, label='V1 ± std dev')  #uncomment for std dev
 
 # Velocity 2 — average line + shaded std deviation band
-ax.plot(v2_time, v2_avg, color='steelblue', linewidth=2.0, label='Velocity 2 - 2m/s (avg across two trials)')
+ax.plot(v2_time, v2_avg, color='steelblue', linewidth=2.0, label='Velocity 2 - 2m/s (avg across three trials)')
 ax.axhline(-5, color='red', linestyle='--', linewidth=1.2, label='-5% margin')
-# ax.fill_between(v2_time, v2_avg - v2_std, v2_avg + v2_std, color='darkorange', alpha=0.2, label='V2 ± std dev')
+# ax.fill_between(v2_time, v2_avg - v2_std, v2_avg + v2_std, color='darkorange', alpha=0.2, label='V2 ± std dev') #uncomment for std dev
 ax.set_ylim(-100,100)
 ax.set_xlim(0,8)
 
 ax.set_xlabel('Time (s)')
 ax.set_ylabel('% Error (error/desired distance * 100)')
-ax.set_title('Average Wall Following Error Across Three Trials for Straight Path — Velocity 1 vs Velocity 2')
+#change title depending on test case
+ax.set_title('Average Wall Following Error Across Three Trials for Straight Path — Velocity 1 vs Velocity 2')       
 ax.legend()
 ax.grid(True, alpha=0.3)
 
 plt.tight_layout()
+#change figure name depending on test case
 plt.savefig('straight_avg_error_v1_vs_v2.png', dpi=150)
 plt.show()
 
 
 # ── STATS ─────────────────────────────────────────────────────────────────────
+#extracting max, min, and avg percent error
 print("\n── Velocity 1 ──")
 print(f"  Max error:  {v1_avg.max():.2f}%")
 print(f"  Min error:  {v1_avg.min():.2f}%")
@@ -230,6 +234,7 @@ print(f"  Avg error:  {v2_avg.mean():.2f}%")
 
 
 
+### CODE FOR PLOTTING INDIVIDUAL TRIALS
 # #to showcase that our wall following algorithm is 
 # #working and has a very small error over time. 
 # import numpy as np
@@ -386,56 +391,10 @@ print(f"  Avg error:  {v2_avg.mean():.2f}%")
 # plt.savefig('straight_v1_3trials_errorpct.png', dpi=150)
 # plt.show()
 
-# #straight speed 1
-# # trial1 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\straight_1_speed_1\straight_1_speed_1_0.db\scan.csv"
-# # trial2 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\straight_2_speed_1\straight_2_speed_1_0.db\scan.csv"
-# # trial3 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\straight_23_speed_1\straight_23_speed_1_0.db\scan.csv"
-
-# #straight speed 2
-# # trial1 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\ostraight_1_speed_2\ostraight_1_speed_2_0.db\scan.csv"
-# # trial2 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\straight_2_speed_2\straight_2_speed_2_0.db\scan.csv"
-# # trial3 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\straighht_3_speed_2\straighht_3_speed_2_0.db\scan.csv"
-
-# #straight 45 degrees inward speed1
-# # trial1 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\in45_1_speed_1\in45_1_speed_1_0.db\scan.csv"
-# # trial2 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\in45_12_speed_1\in45_12_speed_1_0.db\scan.csv"
-# # trial3 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\in45_13_speed_1\in45_13_speed_1_0.db\scan.csv"
-
-# #straight 45 degrees inward speed2
-# #trial1 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\in45_1_speed_2\in45_1_speed_2_0.db\scan.csv"
-# #trial3 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\sin45_3_speed_2\sin45_3_speed_2_0.db\scan.csv"
-
-# #straight 45 degrees outward speed1
-# #trial1 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\iout45_1_speed_1\iout45_1_speed_1_0.db\scan.csv"
-# #trial2 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\iout45_2_speed_1\iout45_2_speed_1_0.db\scan.csv"
-# #trial3 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\iout45_3_speed_1\iout45_3_speed_1_0.db\scan.csv"
-
-# #straight 45 degrees outward speed2
-# # trial1 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\sout45_1_speed_2\sout45_1_speed_2_0.db\scan.csv"
-# # trial2 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\sout45_12_speed_2\sout45_12_speed_2_0.db\scan.csv"
-# # trial3 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\sout45_3_speed_2\sout45_3_speed_2_0.db\scan.csv"
-
-# #inside corner turn speed1
-# # trial1 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\sinside_corner_1_speed_1\sinside_corner_1_speed_1_0.db\scan.csv"
-# # trial2 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\sinside_corner_2_speed_1\sinside_corner_2_speed_1_0.db\scan.csv"
-# # trial3 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\sinside_corner_23_speed_1\sinside_corner_23_speed_1_0.db\scan.csv"
-
-# #inside corner turn speed2
-# # trial1 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\sinside_corner_1_speed_2\sinside_corner_1_speed_2_0.db\scan.csv"
-# # trial2 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\sinside_corner_12_speed_2\sinside_corner_12_speed_2_0.db\scan.csv"
-# # trial3 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\sinside_corner_23_speed_1\sinside_corner_23_speed_1_0.db\scan.csv"
-
-# # #outside corner turn speed1
-# # trial1 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\sout_1_speed_1\sout_1_speed_1_0.db\scan.csv"
-# # trial2 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\sout_2_speed_1\sout_2_speed_1_0.db\scan.csv"
-# # trial3 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\sout_23_speed_1\sout_23_speed_1_0.db\scan.csv"
-
-# # #outside corner turn speed2
-# # trial1 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\sout_1_speed_2\sout_1_speed_2_0.db\scan.csv"
-# # trial2 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\out_2_speed_2\out_2_speed_2_0.db\scan.csv"
-# # trial3 = r"C:\Users\conni\racecar_docker\home\racecar_ws\rss_lab3\lab03\bags\outt_3_speed_2\outt_3_speed_2_0.db\scan.csv"
 
 
+
+### code for single trial
 # # import numpy as np
 # # import pandas as pd
 # # import matplotlib.pyplot as plt
