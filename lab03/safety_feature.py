@@ -26,7 +26,7 @@ class SafetyStop(Node):
         self.declare_parameter("safe_front_dist", 0.4)
         self.declare_parameter("speed_multiplier", 0.3)
 
-        # Fetch constants from the ROS parameter server
+        # Fetch constants
         self.SCAN_TOPIC = self.get_parameter('scan_topic').get_parameter_value().string_value
         self.SAFETY_TOPIC = self.get_parameter('safety_topic').get_parameter_value().string_value
         self.POSITION_TOPIC = self.get_parameter('position_topic').get_parameter_value().string_value
