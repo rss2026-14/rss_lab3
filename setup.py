@@ -30,6 +30,7 @@ setup(
         	'test_wall_follower = lab03.test_wall_follower:main',
             'safety_stop = lab03.safety_feature:main',
             'bag_grapher = lab03.bag_grapher:main',
+            'drive_forward = lab03.safety_test.py'
         ],
     },
 )

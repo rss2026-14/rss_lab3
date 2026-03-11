@@ -67,7 +67,7 @@ class SafetyStop(Node):
             # faster we go the further away we start feeling the corner
             safe_dist = 0.4
 
-            if front_dist < safe_dist or front_dist < self.speed * 0.25:
+            if front_dist < safe_dist or front_dist < self.speed * 0.3:
                 return True
 
         return False
