@@ -21,10 +21,10 @@ class SafetyStop(Node):
         # --- Tunable Safety Parameters (extracted from hardcoded values) ---
         self.declare_parameter("side_angle_min", np.pi / 4.0)
         self.declare_parameter("side_angle_max", 115.0 * (np.pi / 180.0))
-        self.declare_parameter("min_wall_dist", 0.25)
+        self.declare_parameter("min_wall_dist", 0.5)
         self.declare_parameter("front_angle", 0.55)
         self.declare_parameter("safe_front_dist", 0.4)
-        self.declare_parameter("speed_multiplier", 0.3)
+        self.declare_parameter("speed_multiplier", 0.5)
 
         # Fetch constants
         self.SCAN_TOPIC = self.get_parameter('scan_topic').get_parameter_value().string_value
