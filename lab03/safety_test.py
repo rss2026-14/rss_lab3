@@ -11,7 +11,7 @@ class ForwardDrive(Node):
 
         # Declare parameters to make them available for use
         # DO NOT MODIFY THIS!
-        self.declare_parameter("drive_topic", "/vesc/high_level/input/nav_0")
+        self.declare_parameter("drive_topic", "/drive")
         self.declare_parameter("velocity", 1.0)
         self.declare_parameter("steering_angle", 0.0)
 

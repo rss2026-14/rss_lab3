@@ -13,17 +13,17 @@ class SafetyStop(Node):
 
         # --- Base Parameters ---
         self.declare_parameter("scan_topic", "/scan")
-        self.declare_parameter("safety_topic", '/vesc/input/safety')
+        self.declare_parameter("safety_topic", '/vesc/low_level/input/safety')
         self.declare_parameter("position_topic", '/vesc/low_level/ackermann_cmd')
         self.declare_parameter("side", 1)
         self.declare_parameter("velocity", 1.0)
 
-        # --- Tunable Safety Parameters (extracted from hardcoded values) ---
+        # --- Tunable Safety Parameters
         self.declare_parameter("side_angle_min", np.pi / 4.0)
         self.declare_parameter("side_angle_max", 115.0 * (np.pi / 180.0))
-        self.declare_parameter("min_wall_dist", 0.5)
+        self.declare_parameter("min_wall_dist", 0.2)
         self.declare_parameter("front_angle", 0.55)
-        self.declare_parameter("safe_front_dist", 0.4)
+        self.declare_parameter("safe_front_dist", 0.2)
         self.declare_parameter("speed_multiplier", 0.5)
 
         # Fetch constants
