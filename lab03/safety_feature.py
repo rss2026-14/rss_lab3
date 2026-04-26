@@ -110,7 +110,7 @@ class SafetyStop(Node):
         Dynamically updates parameters when modified via 'ros2 param set'.
         """
         for param in params:
-            elif param.name == 'velocity':
+            if param.name == 'velocity':
                 self.VELOCITY = param.value
                 self.speed = self.VELOCITY # Sync fallback speed
                 self.get_logger().info(f"Updated velocity to {self.VELOCITY}")
