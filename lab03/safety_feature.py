@@ -22,7 +22,9 @@ class SafetyStop(Node):
         self.declare_parameter("side_angle_max", 115.0 * (np.pi / 180.0))
         self.declare_parameter("min_wall_dist", 0.2)
         self.declare_parameter("front_angle", 0.55)
-        self.declare_parameter("safe_front_dist", 1.0)
+        self.declare_parameter("safe_front_dist", 0.2)
+        self.declare_parameter("speed_multiplier", 2.0)
+        
         self.declare_parameter("dist_mask_max", 10.0)
         self.declare_parameter("dist_mask_min", 0.1)
 
@@ -40,6 +42,7 @@ class SafetyStop(Node):
         self.SAFE_FRONT_DIST = self.get_parameter('safe_front_dist').get_parameter_value().double_value
         self.DIST_MASK_MAX = self.get_parameter('dist_mask_max').get_parameter_value().double_value
         self.DIST_MASK_MIN = self.get_parameter('dist_mask_min').get_parameter_value().double_value
+        self.SPEED_MULTIPLIER = self.get_parameter('speed_multiplier').get_parameter_value().double_value
 
         # Activates the parameters_callback function
         self.add_on_set_parameters_callback(self.parameters_callback)
@@ -85,7 +88,7 @@ class SafetyStop(Node):
             front_dist = np.min(front_ranges)
 
             # Check against tunable safe distances and dynamic speed calculations
-            if front_dist < self.SAFE_FRONT_DIST:
+            if front_dist < self.SAFE_FRONT_DIST*self.SPEED_MULTIPLIER*self.speed:
                 self.get_logger().info(f"stopped from front at {front_ranges}")
                 return True
 
