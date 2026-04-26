@@ -30,7 +30,6 @@ class SafetyStop(Node):
         self.SCAN_TOPIC = self.get_parameter('scan_topic').get_parameter_value().string_value
         self.SAFETY_TOPIC = self.get_parameter('safety_topic').get_parameter_value().string_value
         self.POSITION_TOPIC = self.get_parameter('position_topic').get_parameter_value().string_value
-        self.SIDE = self.get_parameter('side').get_parameter_value().integer_value
         self.VELOCITY = self.get_parameter('velocity').get_parameter_value().double_value
 
         # Fetch tunable constants
@@ -111,9 +110,6 @@ class SafetyStop(Node):
         Dynamically updates parameters when modified via 'ros2 param set'.
         """
         for param in params:
-            if param.name == 'side':
-                self.SIDE = param.value
-                self.get_logger().info(f"Updated side to {self.SIDE}")
             elif param.name == 'velocity':
                 self.VELOCITY = param.value
                 self.speed = self.VELOCITY # Sync fallback speed
