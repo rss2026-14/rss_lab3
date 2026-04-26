@@ -15,7 +15,6 @@ class SafetyStop(Node):
         self.declare_parameter("scan_topic", "/scan")
         self.declare_parameter("safety_topic", '/vesc/low_level/input/safety')
         self.declare_parameter("position_topic", '/vesc/low_level/ackermann_cmd')
-        self.declare_parameter("side", 1)
         self.declare_parameter("velocity", 1.0)
 
         # --- Tunable Safety Parameters
@@ -23,8 +22,7 @@ class SafetyStop(Node):
         self.declare_parameter("side_angle_max", 115.0 * (np.pi / 180.0))
         self.declare_parameter("min_wall_dist", 0.2)
         self.declare_parameter("front_angle", 0.55)
-        self.declare_parameter("safe_front_dist", 0.2)
-        self.declare_parameter("speed_multiplier", 1.0)
+        self.declare_parameter("safe_front_dist", 1.0)
         self.declare_parameter("dist_mask_max", 10.0)
         self.declare_parameter("dist_mask_min", 0.1)
 
@@ -41,7 +39,6 @@ class SafetyStop(Node):
         self.MIN_WALL_DIST = self.get_parameter('min_wall_dist').get_parameter_value().double_value
         self.FRONT_ANGLE = self.get_parameter('front_angle').get_parameter_value().double_value
         self.SAFE_FRONT_DIST = self.get_parameter('safe_front_dist').get_parameter_value().double_value
-        self.SPEED_MULTIPLIER = self.get_parameter('speed_multiplier').get_parameter_value().double_value
         self.DIST_MASK_MAX = self.get_parameter('dist_mask_max').get_parameter_value().double_value
         self.DIST_MASK_MIN = self.get_parameter('dist_mask_min').get_parameter_value().double_value
 
@@ -61,18 +58,24 @@ class SafetyStop(Node):
 
         all_angles = np.linspace(received_scan.angle_min, received_scan.angle_max, len(ranges))
 
-        # Apply parameterized angle ranges for side wall detection
-        if self.SIDE == 1:
-            wall_distances_mask = valid_distances_mask & (all_angles > self.SIDE_ANGLE_MIN) & (all_angles < self.SIDE_ANGLE_MAX)
-        else:
-            wall_distances_mask = valid_distances_mask & (all_angles < -self.SIDE_ANGLE_MIN) & (all_angles > -self.SIDE_ANGLE_MAX)
-
+        # Check both left and right side wall distances
+        left_wall_mask = (
+            valid_distances_mask
+            & (all_angles > self.SIDE_ANGLE_MIN)
+            & (all_angles < self.SIDE_ANGLE_MAX)
+        )
+        
+        right_wall_mask = (
+            valid_distances_mask
+            & (all_angles < -self.SIDE_ANGLE_MIN)
+            & (all_angles > -self.SIDE_ANGLE_MAX)
+        )
+        
+        wall_distances_mask = left_wall_mask | right_wall_mask
         wall_distances = ranges[wall_distances_mask]
-
-        # Check against tunable minimum wall distance
+        
         if len(wall_distances) > 0 and np.min(wall_distances) < self.MIN_WALL_DIST:
-            self.get_logger().info(f"stopped from side at {wall_distances}")
-
+            self.get_logger().info(f"stopped from side at {np.min(wall_distances)}")
             return True
 
         # Apply parameterized front mask angles
@@ -83,7 +86,7 @@ class SafetyStop(Node):
             front_dist = np.min(front_ranges)
 
             # Check against tunable safe distances and dynamic speed calculations
-            if front_dist < self.SAFE_FRONT_DIST*self.speed:
+            if front_dist < self.SAFE_FRONT_DIST:
                 self.get_logger().info(f"stopped from front at {front_ranges}")
                 return True
 
