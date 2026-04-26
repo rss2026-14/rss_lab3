@@ -24,7 +24,9 @@ class SafetyStop(Node):
         self.declare_parameter("min_wall_dist", 0.2)
         self.declare_parameter("front_angle", 0.55)
         self.declare_parameter("safe_front_dist", 0.2)
-        self.declare_parameter("speed_multiplier", 0.5)
+        self.declare_parameter("speed_multiplier", 1.0)
+        self.declare_parameter("dist_mask_max", 10.0)
+        self.declare_parameter("dist_mask_min", 0.1)
 
         # Fetch constants
         self.SCAN_TOPIC = self.get_parameter('scan_topic').get_parameter_value().string_value
@@ -40,6 +42,8 @@ class SafetyStop(Node):
         self.FRONT_ANGLE = self.get_parameter('front_angle').get_parameter_value().double_value
         self.SAFE_FRONT_DIST = self.get_parameter('safe_front_dist').get_parameter_value().double_value
         self.SPEED_MULTIPLIER = self.get_parameter('speed_multiplier').get_parameter_value().double_value
+        self.DIST_MASK_MAX = self.get_parameter('dist_mask_max').get_parameter_value().double_value
+        self.DIST_MASK_MIN = self.get_parameter('dist_mask_min').get_parameter_value().double_value
 
         # Activates the parameters_callback function
         self.add_on_set_parameters_callback(self.parameters_callback)
@@ -53,7 +57,7 @@ class SafetyStop(Node):
 
     def forcestop(self, received_scan):
         ranges = np.array(received_scan.ranges)
-        valid_distances_mask = (ranges > received_scan.range_min) & (ranges < received_scan.range_max)
+        valid_distances_mask = (ranges > self.DIST_MASK_MIN) & (ranges < self.DIST_MASK_MAX)
 
         all_angles = np.linspace(received_scan.angle_min, received_scan.angle_max, len(ranges))
 
@@ -66,7 +70,9 @@ class SafetyStop(Node):
         wall_distances = ranges[wall_distances_mask]
 
         # Check against tunable minimum wall distance
-        if len(wall_distances) > 0 and min(wall_distances) < self.MIN_WALL_DIST:
+        if len(wall_distances) > 0 and np.min(wall_distances) < self.MIN_WALL_DIST:
+            self.get_logger().info(f"stopped from side at {wall_distances}")
+
             return True
 
         # Apply parameterized front mask angles
@@ -77,11 +83,11 @@ class SafetyStop(Node):
             front_dist = np.min(front_ranges)
 
             # Check against tunable safe distances and dynamic speed calculations
-            if front_dist < self.SAFE_FRONT_DIST or front_dist < (self.speed * self.SPEED_MULTIPLIER):
+            if front_dist < self.SAFE_FRONT_DIST*self.speed:
+                self.get_logger().info(f"stopped from front at {front_ranges}")
                 return True
 
         return False
-
     def listener_callback(self, received):
         stop = self.forcestop(received)
 
