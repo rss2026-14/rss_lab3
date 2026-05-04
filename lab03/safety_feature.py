@@ -23,7 +23,7 @@ class SafetyStop(Node):
         self.declare_parameter("min_wall_dist", 0.2)
         self.declare_parameter("front_angle", 0.3)
         self.declare_parameter("safe_front_dist", 0.2)
-        self.declare_parameter("speed_multiplier", 2.0)
+        self.declare_parameter("speed_multiplier", 0.1)
 
         self.declare_parameter("dist_mask_max", 10.0)
         self.declare_parameter("dist_mask_min", 0.1)
