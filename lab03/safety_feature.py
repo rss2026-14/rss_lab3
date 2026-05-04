@@ -21,10 +21,10 @@ class SafetyStop(Node):
         self.declare_parameter("side_angle_min", np.pi / 4.0)
         self.declare_parameter("side_angle_max", 115.0 * (np.pi / 180.0))
         self.declare_parameter("min_wall_dist", 0.2)
-        self.declare_parameter("front_angle", 0.55)
+        self.declare_parameter("front_angle", 0.3)
         self.declare_parameter("safe_front_dist", 0.2)
         self.declare_parameter("speed_multiplier", 2.0)
-        
+
         self.declare_parameter("dist_mask_max", 10.0)
         self.declare_parameter("dist_mask_min", 0.1)
 
@@ -66,16 +66,16 @@ class SafetyStop(Node):
             & (all_angles > self.SIDE_ANGLE_MIN)
             & (all_angles < self.SIDE_ANGLE_MAX)
         )
-        
+
         right_wall_mask = (
             valid_distances_mask
             & (all_angles < -self.SIDE_ANGLE_MIN)
             & (all_angles > -self.SIDE_ANGLE_MAX)
         )
-        
+
         wall_distances_mask = left_wall_mask | right_wall_mask
         wall_distances = ranges[wall_distances_mask]
-        
+
         if len(wall_distances) > 0 and np.min(wall_distances) < self.MIN_WALL_DIST:
             self.get_logger().info(f"stopped from side at {np.min(wall_distances)}")
             return True
@@ -85,11 +85,17 @@ class SafetyStop(Node):
         front_ranges = ranges[front_mask]
 
         if len(front_ranges) > 0:
-            front_dist = np.min(front_ranges)
+            # front_dist = np.min(front_ranges)
+            front_dist = np.percentile(front_ranges, 10)
 
             # Check against tunable safe distances and dynamic speed calculations
-            if front_dist < self.SAFE_FRONT_DIST*self.SPEED_MULTIPLIER*self.speed:
-                self.get_logger().info(f"stopped from front at {front_ranges}")
+            # if front_dist < self.SAFE_FRONT_DIST*self.SPEED_MULTIPLIER*self.speed:
+            #     self.get_logger().info(f"stopped from front")
+            #     return True
+            threshold = self.SAFE_FRONT_DIST + self.SPEED_MULTIPLIER * self.speed
+            threshold = min(threshold, 0.7)
+            if front_dist < threshold:
+                self.get_logger().info(f"stopped from front")
                 return True
 
         return False
